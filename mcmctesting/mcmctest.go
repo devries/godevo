@@ -3,10 +3,13 @@ package main
 import (
 	"bitbucket.org/devries/godevo"
 	"fmt"
+	"gonum.org/v1/gonum/stat"
 	"math/rand"
+	"time"
 )
 
 func main() {
+	rand.Seed(time.Now().UnixNano())
 	x := make([]float64, 21)
 	p0 := []float64{2.0, 3.0}
 
@@ -17,13 +20,17 @@ func main() {
 	y := make([]float64, 21)
 
 	for i := range y {
-		y[i] = linear(p0, x[i]) + rand.NormFloat64()*2.0
+		y[i] = linear(p0, x[i]) + rand.NormFloat64()*0.5
 	}
+
+	var weights []float64
+	alpha, beta := stat.LinearRegression(x, y, weights, false)
+	fmt.Printf("slope: %f, intercept: %f\n", beta, alpha)
 
 	optimizationFunc := func(params []float64) float64 {
 		sumsq := 0.0
 		for i := range x {
-			sumsq += residual(params, x[i], y[i], 4.0)
+			sumsq += residual(params, x[i], y[i], 0.25)
 		}
 
 		return sumsq
