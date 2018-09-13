@@ -286,6 +286,30 @@ func (model *Model) Best() ([]float64, float64) {
 	return bestParams, bestFitness
 }
 
+// Return the mean and standard deviation of the parameters of the population
+func (model *Model) MeanStd() ([]float64, []float64) {
+	meanParameters := make([]float64, len(model.Population[0]))
+	standardDeviation := make([]float64, len(model.Population[0]))
+
+	np := len(model.Population)
+
+	for _, v := range model.Population {
+		for i := range v {
+			meanParameters[i] += v[i]
+			standardDeviation[i] += v[i] * v[i]
+		}
+	}
+
+	for i := range meanParameters {
+		meanParameters[i] /= float64(np)
+		standardDeviation[i] = math.Sqrt(standardDeviation[i]/float64(np) - meanParameters[i]*meanParameters[i])
+	}
+
+	return meanParameters, standardDeviation
+}
+
+// Calculate the fiteness of a particular parameter set and place it in the fitness array. Both come from
+// the location in the slices.
 func CalculateFitness(population *[][]float64, fitness *[]float64, location int, modelFunction func([]float64) float64) {
 	parameters := (*population)[location]
 
