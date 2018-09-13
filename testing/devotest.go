@@ -13,15 +13,22 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	model.TrialFunction = godevo.TrialPopulationSP95
 	model.CrossoverConstant = 0.4
 	model.WeightingFactor = 0.8
 
-	for i := 0; i < 200; i++ {
+	bp, bf := model.Best()
+	fmt.Printf("Best Parameters: %v\n", bp)
+	fmt.Printf("Best Fitness: %f\n", bf)
+
+	ngen := 50
+	fmt.Printf("Running model of %d generations\n", ngen)
+
+	for i := 0; i < ngen; i++ {
 		model.Step()
-		fmt.Println(model.Fitness)
 	}
 
-	bp, bf := model.Best()
+	bp, bf = model.Best()
 	fmt.Printf("Best Parameters: %v\n", bp)
 	fmt.Printf("Best Fitness: %f\n", bf)
 }
