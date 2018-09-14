@@ -29,6 +29,7 @@ type Model struct {
 	DenialFunction    func(float64, float64) bool                     // The denial function, either GreedyDenial or MetropolisDenial
 	TrialFunction     func([][]float64, float64, float64) [][]float64 // The trial population function, TrialPopulationSP97 for Storn & Price (1997)
 	ModelFunction     func([]float64) float64                         // The function to optimize
+	ParallelMode      bool                                            // Do fitness calculation in parallel
 }
 
 // Generate a trial population according to Storn & Price 1997 paper.
@@ -187,18 +188,9 @@ func Initialize(pmin []float64, pmax []float64, np int, modelFunction func([]flo
 		}
 	}
 
-	var wg sync.WaitGroup // Wait group for initializing fitnesses
 	fitness := make([]float64, np)
 
-	for i := range result {
-		wg.Add(1)
-		go func(i int) {
-			defer wg.Done()
-			calculateFitness(&result, &fitness, i, modelFunction)
-		}(i)
-	}
-
-	wg.Wait()
+	calculateFitness(&result, &fitness, modelFunction)
 
 	model := Model{
 		Population:        result,
@@ -208,6 +200,7 @@ func Initialize(pmin []float64, pmax []float64, np int, modelFunction func([]flo
 		DenialFunction:    GreedyDenial,
 		TrialFunction:     TrialPopulationSP97,
 		ModelFunction:     modelFunction,
+		ParallelMode:      false,
 	}
 
 	return &model, nil
@@ -231,18 +224,13 @@ func InitializeMCMC(pmin []float64, pmax []float64, np int, modelFunction func([
 // Step forward one generation in differential evolution modeling.
 func (model *Model) Step() {
 	trialPopulation := model.TrialFunction(model.Population, model.WeightingFactor, model.CrossoverConstant)
-	var wg sync.WaitGroup
 	trialFitness := make([]float64, len(trialPopulation))
 
-	for i := range trialPopulation {
-		wg.Add(1)
-		go func(i int) {
-			defer wg.Done()
-			calculateFitness(&trialPopulation, &trialFitness, i, model.ModelFunction)
-		}(i)
+	if model.ParallelMode {
+		parallelCalculateFitness(&trialPopulation, &trialFitness, model.ModelFunction)
+	} else {
+		calculateFitness(&trialPopulation, &trialFitness, model.ModelFunction)
 	}
-
-	wg.Wait()
 
 	for i := range trialFitness {
 		denial := model.DenialFunction(model.Fitness[i], trialFitness[i])
@@ -292,9 +280,27 @@ func (model *Model) MeanStd() ([]float64, []float64) {
 
 // Calculate the fiteness of a particular parameter set and place it in the fitness array. Both come from
 // the location in the slices.
-func calculateFitness(population *[][]float64, fitness *[]float64, location int, modelFunction func([]float64) float64) {
-	parameters := (*population)[location]
+func calculateFitness(population *[][]float64, fitness *[]float64, modelFunction func([]float64) float64) {
+	for i := range *fitness {
+		parameters := (*population)[i]
 
-	fitnessValue := modelFunction(parameters)
-	(*fitness)[location] = fitnessValue
+		fitnessValue := modelFunction(parameters)
+		(*fitness)[i] = fitnessValue
+	}
+}
+
+func parallelCalculateFitness(population *[][]float64, fitness *[]float64, modelFunction func([]float64) float64) {
+	var wg sync.WaitGroup
+
+	for i := range *fitness {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			parameters := (*population)[i]
+			fitnessValue := modelFunction(parameters)
+			(*fitness)[i] = fitnessValue
+		}(i)
+	}
+
+	wg.Wait()
 }

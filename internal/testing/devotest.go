@@ -16,6 +16,7 @@ func main() {
 	model.TrialFunction = godevo.TrialPopulationSP95
 	model.CrossoverConstant = 0.4
 	model.WeightingFactor = 0.8
+	model.ParallelMode = false
 
 	bp, bf := model.Best()
 	fmt.Printf("Best Parameters: %v\n", bp)
