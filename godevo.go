@@ -67,7 +67,6 @@ func TrialPopulationSP97(population [][]float64, f float64, cr float64) [][]floa
 				nextpopulation[i][k] = population[a][k] + f*(population[b][k]-population[c][k])
 			}
 		}
-
 	}
 
 	return nextpopulation
@@ -112,7 +111,6 @@ func TrialPopulationSP95(population [][]float64, f float64, cr float64) [][]floa
 		for k := s; k < s+l; k++ {
 			nextpopulation[i][k%d] = population[a][k%d] + f*(population[b][k%d]-population[c][k%d])
 		}
-
 	}
 
 	return nextpopulation
@@ -152,7 +150,6 @@ func TrialPopulationParent(population [][]float64, f float64, cr float64) [][]fl
 				nextpopulation[i][k] = population[a][k] + f*(population[b][k]-population[c][k])
 			}
 		}
-
 	}
 
 	return nextpopulation
