@@ -220,43 +220,15 @@ func Initialize(pmin []float64, pmax []float64, np int, modelFunction func([]flo
 // pmin are the minimum parameter values, and pmax are the maximum parameter values. The function to
 // be optimized is modelFunction.
 func InitializeMCMC(pmin []float64, pmax []float64, np int, modelFunction func([]float64) float64) (*Model, error) {
-	if len(pmin) != len(pmax) {
-		return nil, errors.New("Initial population limit sizes don't match")
+	model, err := Initialize(pmin, pmax, np, modelFunction)
+	if err != nil {
+		return nil, err
 	}
 
-	result := make([][]float64, np)
-	for i := 0; i < np; i++ {
-		result[i] = make([]float64, len(pmin))
+	model.DenialFunction = MetropolisDenial
+	model.TrialFunction = TrialPopulationParent
 
-		for j := 0; j < len(pmin); j++ {
-			result[i][j] = (pmax[j]-pmin[j])*rand.Float64() + pmin[j]
-		}
-	}
-
-	var wg sync.WaitGroup // Wait group for initializing fitnesses
-	fitness := make([]float64, np)
-
-	for i := range result {
-		wg.Add(1)
-		go func(i int) {
-			defer wg.Done()
-			calculateFitness(&result, &fitness, i, modelFunction)
-		}(i)
-	}
-
-	wg.Wait()
-
-	model := Model{
-		Population:        result,
-		Fitness:           fitness,
-		CrossoverConstant: 0.1,
-		WeightingFactor:   0.7,
-		DenialFunction:    MetropolisDenial,
-		TrialFunction:     TrialPopulationParent,
-		ModelFunction:     modelFunction,
-	}
-
-	return &model, nil
+	return model, nil
 }
 
 // Step forward one generation in differential evolution modeling.
