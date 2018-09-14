@@ -104,7 +104,7 @@ func TrialPopulationSP95(population [][]float64, f float64, cr float64) [][]floa
 
 		l := 1
 		for rand.Float64() < cr && l < d {
-			l += 1
+			l++
 		}
 
 		copy(nextpopulation[i], population[i])
