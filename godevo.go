@@ -184,7 +184,7 @@ func Initialize(pmin []float64, pmax []float64, np int, modelFunction func([]flo
 		wg.Add(1)
 		go func(i int) {
 			defer wg.Done()
-			CalculateFitness(&result, &fitness, i, modelFunction)
+			calculateFitness(&result, &fitness, i, modelFunction)
 		}(i)
 	}
 
@@ -227,7 +227,7 @@ func InitializeMCMC(pmin []float64, pmax []float64, np int, modelFunction func([
 		wg.Add(1)
 		go func(i int) {
 			defer wg.Done()
-			CalculateFitness(&result, &fitness, i, modelFunction)
+			calculateFitness(&result, &fitness, i, modelFunction)
 		}(i)
 	}
 
@@ -256,7 +256,7 @@ func (model *Model) Step() {
 		wg.Add(1)
 		go func(i int) {
 			defer wg.Done()
-			CalculateFitness(&trialPopulation, &trialFitness, i, model.ModelFunction)
+			calculateFitness(&trialPopulation, &trialFitness, i, model.ModelFunction)
 		}(i)
 	}
 
@@ -310,7 +310,7 @@ func (model *Model) MeanStd() ([]float64, []float64) {
 
 // Calculate the fiteness of a particular parameter set and place it in the fitness array. Both come from
 // the location in the slices.
-func CalculateFitness(population *[][]float64, fitness *[]float64, location int, modelFunction func([]float64) float64) {
+func calculateFitness(population *[][]float64, fitness *[]float64, location int, modelFunction func([]float64) float64) {
 	parameters := (*population)[location]
 
 	fitnessValue := modelFunction(parameters)
