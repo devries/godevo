@@ -1,5 +1,7 @@
 # Differential Evolution in Go
 
+[![GoDoc](https://godoc.org/github.com/devries/godevo?status.svg)](https://godoc.org/github.com/devries/godevo)
+
 ## Introduction
 
 The differential evolution algorithm is an optimization algorithm developed by
