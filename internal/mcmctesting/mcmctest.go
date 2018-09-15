@@ -5,7 +5,7 @@ import (
 	"math/rand"
 	"time"
 
-	"bitbucket.org/devries/godevo"
+	"github.com/devries/godevo"
 	"gonum.org/v1/gonum/stat"
 )
 

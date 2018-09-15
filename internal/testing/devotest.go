@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"bitbucket.org/devries/godevo"
+	"github.com/devries/godevo"
 )
 
 func main() {
