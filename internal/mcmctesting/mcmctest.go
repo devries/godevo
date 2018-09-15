@@ -46,9 +46,8 @@ func main() {
 	}
 
 	model.WeightingFactor = 0.9
-	model.ParallelMode = false
 
-	for i := 0; i < 50000; i++ {
+	for i := 0; i < 2000; i++ {
 		model.Step()
 	}
 
