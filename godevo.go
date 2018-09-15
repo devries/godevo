@@ -9,8 +9,8 @@
 // Global Optimization 11:341-359, 1997.
 // Implemented in Go by Christopher De Vries (C) 2018.
 
-// Differential Evolution and Markov Chain Monte Carlo Differential Evolution
-// library.
+// Package godevo is a differential evolution and Markov Chain Monte Carlo
+// differential evolution library.
 package godevo
 
 import (
@@ -20,7 +20,7 @@ import (
 	"sync"
 )
 
-// A differential evolution model
+// Model is a differential evolution model structure
 type Model struct {
 	Population        [][]float64                                     // The population of parameters
 	Fitness           []float64                                       // The fitness of each parameter set
@@ -32,11 +32,10 @@ type Model struct {
 	ParallelMode      bool                                            // Do fitness calculation in parallel
 }
 
-// Generate a trial population according to Storn & Price 1997 paper.
-//
-// population is the previous generation population of parameters.
-// f is the weighting factor in the differential evolution algorithm.
-// cr is the crossover constance in the differential evolution algorithm.
+// TrialPopulationSP97 will generate a trial population according to Storn & Price 1997 paper.
+// The population is the previous generation population of parameters.
+// The f parameter is the weighting factor in the differential evolution algorithm.
+// The cr parameter is the crossover constance in the differential evolution algorithm.
 // The function returns a new trial population of parameters.
 func TrialPopulationSP97(population [][]float64, f float64, cr float64) [][]float64 {
 	np := len(population)
@@ -73,11 +72,10 @@ func TrialPopulationSP97(population [][]float64, f float64, cr float64) [][]floa
 	return nextpopulation
 }
 
-// Generate a trial population according to Storn & Price 1995 notes.
-//
-// population is the previous generation population of parameters.
-// f is the weighting factor in the differential evolution algorithm.
-// cr is the crossover constance in the differential evolution algorithm.
+// TrialPopulationSP95 will generate a trial population according to Storn & Price 1995 notes.
+// The population is the previous generation population of parameters.
+// The f parameter is the weighting factor in the differential evolution algorithm.
+// The cr parameter is the crossover constance in the differential evolution algorithm.
 // The function returns a new trial population of parameters.
 func TrialPopulationSP95(population [][]float64, f float64, cr float64) [][]float64 {
 	np := len(population)
@@ -117,12 +115,11 @@ func TrialPopulationSP95(population [][]float64, f float64, cr float64) [][]floa
 	return nextpopulation
 }
 
-// Generate a trial population according to Storn & Price 1997 paper, but always evolve from
-// parent vector at same position.
-//
-// population is the previous generation population of parameters.
-// f is the weighting factor in the differential evolution algorithm.
-// cr is the crossover constance in the differential evolution algorithm.
+// TrialPopulationParent will enerate a trial population according to Storn & Price 1997 paper,
+// but always evolve from parent vector at same position.
+// The population is the previous generation population of parameters.
+// The f parameter is the weighting factor in the differential evolution algorithm.
+// The cr parameter is the crossover constance in the differential evolution algorithm.
 // The function returns a new trial population of parameters.
 func TrialPopulationParent(population [][]float64, f float64, cr float64) [][]float64 {
 	np := len(population)
@@ -156,13 +153,13 @@ func TrialPopulationParent(population [][]float64, f float64, cr float64) [][]fl
 	return nextpopulation
 }
 
-// Standard differential evolution denial function which returns True if the new fitness
+// GreedyDenial is the standard differential evolution denial function which returns True if the new fitness
 // value is greater than the old fitness value.
 func GreedyDenial(oldFitness float64, newFitness float64) bool {
 	return newFitness >= oldFitness
 }
 
-// Metropolis denial function which has a greater probability of returning True if the
+// MetropolisDenial is a function which has a greater probability of returning True if the
 // new fitness value is large compared to the old fitness value.
 func MetropolisDenial(oldFitness float64, newFitness float64) bool {
 	dt := math.Exp((oldFitness - newFitness) / 2.0)
@@ -171,10 +168,11 @@ func MetropolisDenial(oldFitness float64, newFitness float64) bool {
 	return result
 }
 
-// Return a standard initialized differential evolution model with a population of np parameters.
-// pmin are the minimum parameter values, and pmax are the maximum parameter values. The function to
+// Initialize returns a standard initialized differential evolution model with a population of np parameters.
+// pmin are the minimum parameter values, and pmax are the maximum parameter values. The parallel parameter
+// controls if the fitness function is computed in parallel or not. The function to
 // be optimized is modelFunction.
-func Initialize(pmin []float64, pmax []float64, np int, modelFunction func([]float64) float64) (*Model, error) {
+func Initialize(pmin []float64, pmax []float64, np int, parallel bool, modelFunction func([]float64) float64) (*Model, error) {
 	if len(pmin) != len(pmax) {
 		return nil, errors.New("Initial population limit sizes don't match")
 	}
@@ -190,7 +188,11 @@ func Initialize(pmin []float64, pmax []float64, np int, modelFunction func([]flo
 
 	fitness := make([]float64, np)
 
-	calculateFitness(&result, &fitness, modelFunction)
+	if parallel {
+		parallelCalculateFitness(&result, &fitness, modelFunction)
+	} else {
+		calculateFitness(&result, &fitness, modelFunction)
+	}
 
 	model := Model{
 		Population:        result,
@@ -200,17 +202,18 @@ func Initialize(pmin []float64, pmax []float64, np int, modelFunction func([]flo
 		DenialFunction:    GreedyDenial,
 		TrialFunction:     TrialPopulationSP97,
 		ModelFunction:     modelFunction,
-		ParallelMode:      false,
+		ParallelMode:      parallel,
 	}
 
 	return &model, nil
 }
 
-// Return an initialized Markov chain Mote Carlo differential evolution model with a population of np parameters.
-// pmin are the minimum parameter values, and pmax are the maximum parameter values. The function to
+// InitializeMCMC returns an initialized Markov chain Mote Carlo differential evolution model with a population of np parameters.
+// pmin are the minimum parameter values, and pmax are the maximum parameter values. The parallel parameter controls
+// if the optimization function is to be run in parallel. The function to
 // be optimized is modelFunction.
-func InitializeMCMC(pmin []float64, pmax []float64, np int, modelFunction func([]float64) float64) (*Model, error) {
-	model, err := Initialize(pmin, pmax, np, modelFunction)
+func InitializeMCMC(pmin []float64, pmax []float64, np int, parallel bool, modelFunction func([]float64) float64) (*Model, error) {
+	model, err := Initialize(pmin, pmax, np, parallel, modelFunction)
 	if err != nil {
 		return nil, err
 	}
@@ -241,7 +244,7 @@ func (model *Model) Step() {
 	}
 }
 
-// Return the optimal parameters, and the fitness of the optimal parameters from the model.
+// Best returns the optimal parameters, and the fitness of the optimal parameters from the model.
 func (model *Model) Best() ([]float64, float64) {
 	bestParams := model.Population[0]
 	bestFitness := model.Fitness[0]
@@ -256,7 +259,7 @@ func (model *Model) Best() ([]float64, float64) {
 	return bestParams, bestFitness
 }
 
-// Return the mean and standard deviation of the parameters of the population
+// MeanStd returns the mean and standard deviation of the parameters of the population
 func (model *Model) MeanStd() ([]float64, []float64) {
 	meanParameters := make([]float64, len(model.Population[0]))
 	standardDeviation := make([]float64, len(model.Population[0]))
@@ -278,7 +281,7 @@ func (model *Model) MeanStd() ([]float64, []float64) {
 	return meanParameters, standardDeviation
 }
 
-// Calculate the fiteness of a particular parameter set and place it in the fitness array. Both come from
+// calculateFitness calculates the fiteness of a particular parameter set and place it in the fitness array. Both come from
 // the location in the slices.
 func calculateFitness(population *[][]float64, fitness *[]float64, modelFunction func([]float64) float64) {
 	for i := range *fitness {

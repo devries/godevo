@@ -1,11 +1,12 @@
 package main
 
 import (
-	"bitbucket.org/devries/godevo"
 	"fmt"
-	"gonum.org/v1/gonum/stat"
 	"math/rand"
 	"time"
+
+	"bitbucket.org/devries/godevo"
+	"gonum.org/v1/gonum/stat"
 )
 
 func main() {
@@ -39,7 +40,7 @@ func main() {
 	pmin := []float64{0.0, 0.0}
 	pmax := []float64{10.0, 10.0}
 
-	model, err := godevo.InitializeMCMC(pmin, pmax, 500, optimizationFunc)
+	model, err := godevo.InitializeMCMC(pmin, pmax, 500, true, optimizationFunc)
 	if err != nil {
 		panic(err)
 	}

@@ -1,15 +1,16 @@
 package main
 
 import (
-	"bitbucket.org/devries/godevo"
 	"fmt"
+
+	"bitbucket.org/devries/godevo"
 )
 
 func main() {
 	minparams := []float64{0.0, 0.0}
 	maxparams := []float64{2.0, 5.0}
 
-	model, err := godevo.Initialize(minparams, maxparams, 15, parabola)
+	model, err := godevo.Initialize(minparams, maxparams, 15, false, parabola)
 	if err != nil {
 		panic(err)
 	}
