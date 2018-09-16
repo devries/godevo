@@ -177,6 +177,10 @@ func Initialize(pmin []float64, pmax []float64, np int, parallel bool, modelFunc
 		return nil, errors.New("Initial population limit sizes don't match")
 	}
 
+	if np < 4 {
+		return nil, errors.New("The population (np) must be at least 4 members.")
+	}
+
 	result := make([][]float64, np)
 	for i := 0; i < np; i++ {
 		result[i] = make([]float64, len(pmin))
