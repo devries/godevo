@@ -40,6 +40,7 @@ func main() {
 	pmin := []float64{0.0, 0.0}
 	pmax := []float64{10.0, 10.0}
 
+	// This is not actually efficient in parallel, but I just want to exercise that code.
 	model, err := godevo.InitializeMCMC(pmin, pmax, 500, true, optimizationFunc)
 	if err != nil {
 		panic(err)

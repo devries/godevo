@@ -17,7 +17,6 @@ import (
 	"errors"
 	"math"
 	"math/rand"
-	"sync"
 )
 
 // Model is a differential evolution model structure
@@ -292,18 +291,25 @@ func calculateFitness(population *[][]float64, fitness *[]float64, modelFunction
 	}
 }
 
+type fitnessResult struct {
+	Index  int
+	Result float64
+}
+
 func parallelCalculateFitness(population *[][]float64, fitness *[]float64, modelFunction func([]float64) float64) {
-	var wg sync.WaitGroup
+	ch := make(chan fitnessResult)
 
 	for i := range *fitness {
-		wg.Add(1)
-		go func(i int) {
-			defer wg.Done()
-			parameters := (*population)[i]
-			fitnessValue := modelFunction(parameters)
-			(*fitness)[i] = fitnessValue
-		}(i)
+		go func(i int, parameters []float64, rchan chan<- fitnessResult) {
+			var result fitnessResult
+			result.Index = i
+			result.Result = modelFunction(parameters)
+			rchan <- result
+		}(i, (*population)[i], ch)
 	}
 
-	wg.Wait()
+	for range *fitness {
+		r := <-ch
+		(*fitness)[r.Index] = r.Result
+	}
 }
