@@ -17,6 +17,7 @@ import (
 	"errors"
 	"math"
 	"math/rand"
+	"runtime"
 )
 
 // Model is a differential evolution model structure
@@ -300,20 +301,53 @@ type fitnessResult struct {
 	Result float64
 }
 
+type modelInput struct {
+	Index int
+	Input []float64
+}
+
 func parallelCalculateFitness(population *[][]float64, fitness *[]float64, modelFunction func([]float64) float64) {
-	ch := make(chan fitnessResult)
+	resultCh := make(chan fitnessResult)
+	inputCh := make(chan modelInput)
+	procDone := make(chan int)
+	allDone := make(chan int)
 
-	for i := range *fitness {
-		go func(i int, parameters []float64, rchan chan<- fitnessResult) {
-			var result fitnessResult
-			result.Index = i
-			result.Result = modelFunction(parameters)
-			rchan <- result
-		}(i, (*population)[i], ch)
+	ncpu := runtime.NumCPU()
+
+	// These goroutines do the calculation
+	for i := 0; i < ncpu; i++ {
+		go func() {
+			for q := range inputCh {
+				var r fitnessResult
+				r.Index = q.Index
+				r.Result = modelFunction(q.Input)
+				resultCh <- r
+			}
+			procDone <- 1
+		}()
 	}
 
-	for range *fitness {
-		r := <-ch
-		(*fitness)[r.Index] = r.Result
+	// This goroutine collects the result
+	go func() {
+		for r := range resultCh {
+			(*fitness)[r.Index] = r.Result
+		}
+		allDone <- 1
+	}()
+
+	// This goroutine waits for the processes to finish
+	go func() {
+		for i := 0; i < ncpu; i++ {
+			_ = <-procDone
+		}
+		close(resultCh)
+	}()
+
+	for i, v := range *population {
+		inp := modelInput{i, v}
+		inputCh <- inp
 	}
+	close(inputCh)
+
+	_ = <-allDone
 }
