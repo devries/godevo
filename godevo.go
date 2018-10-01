@@ -3,7 +3,7 @@
 // evolution as described by Kenneth Price and Rainer Storn in Dr. Dobb's
 // Journal #264, 1997. pps 18-24,78.
 // Also in "Differential Evolution - A simple and efficient adaptive
-// scheme for global optimization over continuous spaces" vt Storn & Price
+// scheme for global optimization over continuous spaces" by Storn & Price
 // 1995 and "Differential Evolution – A Simple and Efficient Heuristic for
 // Global Optimization over Continuous Spaces" Storn & Price, Journal of
 // Global Optimization 11:341-359, 1997.
