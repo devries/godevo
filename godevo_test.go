@@ -8,6 +8,7 @@ import (
 )
 
 func Example() {
+	rand.Seed(42)
 	minparams := []float64{0.0, 0.0}
 	maxparams := []float64{2.0, 5.0}
 
@@ -35,12 +36,11 @@ func Example() {
 	fmt.Printf("Best Parameters: %v\n", bp)
 	fmt.Printf("Best Fitness: %f\n", bf)
 	// Output:
-	// Best Parameters: [1.3291201064369809 2.188570935934901]
-	// Best Fitness: 3.143879
+	// Best Parameters: [1.3280218953690182 2.331018106387252]
+	// Best Fitness: 3.217171
 	// Running model of 50 generations
-	// Best Parameters: [1.0000398945473465 1.9999560626560737]
+	// Best Parameters: [0.999987025007789 1.999966608737686]
 	// Best Fitness: 3.000000
-
 }
 
 func parabola(vec []float64) float64 {
@@ -50,6 +50,7 @@ func parabola(vec []float64) float64 {
 }
 
 func Example_mcmc() {
+	rand.Seed(42)
 	x := make([]float64, 21)
 	p0 := []float64{2.0, 3.0}
 
@@ -91,8 +92,9 @@ func Example_mcmc() {
 	fmt.Printf("Mean Result: %v\n", mean)
 	fmt.Printf("Standard Deviation: %v\n", stdev)
 	// Output:
-	// Mean Result: [1.9957620634203024 3.0492738452707036]
-	// Standard Deviation: [0.03556878341052565 0.21206183365022743]
+	// Mean Result: [1.9624802929430822 3.3155542023129514]
+	// Standard Deviation: [0.03711446105839528 0.21234935229456098]
+
 }
 
 func linear(params []float64, x float64) float64 {
